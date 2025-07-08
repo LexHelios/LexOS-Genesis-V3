@@ -27,7 +27,9 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { id: 'chat', label: 'Chat', icon: ChatBubbleLeftRightIcon },
+  { id: 'agents', label: 'Multi-Agent Chat', icon: ChatBubbleLeftRightIcon },
+  { id: 'agent-dashboard', label: 'Agent Dashboard', icon: CpuChipIcon },
+  { id: 'chat', label: 'Simple Chat', icon: ChatBubbleLeftRightIcon },
   { id: 'dashboard', label: 'Dashboard', icon: ChartBarIcon },
   { id: 'models', label: 'Models', icon: CpuChipIcon },
   { id: 'memory', label: 'Memory', icon: CircleStackIcon },

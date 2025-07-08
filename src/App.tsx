@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from './components/Sidebar'
 import ChatInterface from './components/ChatInterface'
+import MultiAgentChat from './components/MultiAgentChat'
+import AgentDashboard from './components/AgentDashboard'
 import Dashboard from './components/Dashboard'
 import ModelManager from './components/ModelManager'
 import MemoryExplorer from './components/MemoryExplorer'
@@ -11,7 +13,7 @@ import { useWebSocket } from './hooks/useWebSocket'
 import { useTheme } from './hooks/useTheme'
 import { LexOSProvider } from './context/LexOSContext'
 
-export type ViewType = 'chat' | 'dashboard' | 'models' | 'memory' | 'monitor' | 'settings'
+export type ViewType = 'chat' | 'agents' | 'agent-dashboard' | 'dashboard' | 'models' | 'memory' | 'monitor' | 'settings'
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<ViewType>('chat')
@@ -32,6 +34,10 @@ function AppContent() {
     switch (currentView) {
       case 'chat':
         return <ChatInterface />
+      case 'agents':
+        return <MultiAgentChat />
+      case 'agent-dashboard':
+        return <AgentDashboard />
       case 'dashboard':
         return <Dashboard />
       case 'models':
@@ -43,7 +49,7 @@ function AppContent() {
       case 'settings':
         return <Settings />
       default:
-        return <ChatInterface />
+        return <MultiAgentChat />
     }
   }
 
