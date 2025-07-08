@@ -1,0 +1,45 @@
+# Core dependencies
+aiohttp>=3.9.0
+aiofiles>=23.2.1
+websockets>=12.0
+pyyaml>=6.0.1
+
+# AI/ML dependencies
+numpy>=1.24.0
+pillow>=10.0.0
+sentence-transformers>=2.2.2
+chromadb>=0.4.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# System monitoring
+psutil>=5.9.0
+gputil>=1.4.0
+
+# Web interface
+jinja2>=3.1.2
+
+# Utilities
+python-dateutil>=2.8.2
+rich>=13.0.0
+click>=8.1.0
+python-dotenv>=1.0.0
+
+# Optional but recommended
+pandas>=2.0.0
+matplotlib>=3.7.0
+plotly>=5.17.0
+streamlit>=1.28.0
+
+# Production server (aiohttp)
+uvicorn[standard]>=0.27.0
+
+# Logging
+loguru>=0.7.2
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+
+# Dev tools
+pre-commit>=3.3.0

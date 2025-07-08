@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# LexOS specific
+lexos_memory/
+logs/
+temp/
+*.log
+*.db
+*.sqlite
+/backups/
+
+# Config files with secrets
+.env
+.env.*
+lexos_config.json
+config/*.json
+!config/example.json
+
+# Model files
+models/
+*.gguf
+*.bin
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Backups
+*.bak
+*.backup
+backups/
+
+# Generated files
+static/generated/
+exports/

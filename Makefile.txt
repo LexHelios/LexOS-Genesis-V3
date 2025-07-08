@@ -1,0 +1,58 @@
+.PHONY: help install setup run test clean docker docker-down lint format backup restore logs
+
+help:
+	@echo "LexOS Makefile Commands:"
+	@echo "  make install    - Install Python dependencies"
+	@echo "  make setup      - Run complete setup"
+	@echo "  make run        - Start LexOS"
+	@echo "  make test       - Run tests"
+	@echo "  make clean      - Clean temporary files"
+	@echo "  make docker     - Build and run with Docker"
+	@echo "  make docker-down - Stop Docker containers"
+	@echo "  make logs       - Show Docker logs"
+	@echo "  make lint       - Lint code"
+	@echo "  make format     - Format code"
+	@echo "  make backup     - Backup memory and config"
+	@echo "  make restore    - Restore from backup"
+
+install:
+	pip install -r requirements.txt
+
+setup:
+	python setup.py
+
+run:
+	python main.py
+
+test:
+	pytest tests/ -v
+
+clean:
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	rm -rf .pytest_cache
+	rm -rf htmlcov
+	rm -rf .coverage
+	rm -rf temp/*
+
+docker:
+	docker-compose up --build
+
+docker-down:
+	docker-compose down
+
+logs:
+	docker-compose logs -f
+
+lint:
+	flake8 . --max-line-length=100 --exclude=venv,env
+	black . --line-length=100 --exclude=venv,env
+
+format:
+	black . --line-length=100 --exclude=venv,env
+
+backup:
+	tar -czvf backups/lexos_backup_`date +%F_%T`.tar.gz lexos_memory logs config
+
+restore:
+	@echo "Restore from backup: tar -xzvf backups/your_backup_file.tar.gz"
