@@ -7,7 +7,7 @@ import {
   UserIcon,
   CpuChipIcon,
   EyeIcon,
-  DownloadIcon,
+  ArrowDownTrayIcon,
   PlayIcon,
   PauseIcon,
   DocumentIcon,
@@ -83,7 +83,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 }}
                 className="p-1.5 bg-black/50 text-white rounded-lg hover:bg-black/70"
               >
-                <DownloadIcon className="w-4 h-4" />
+                <ArrowDownTrayIcon className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 onClick={() => downloadFile(url, name)}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-dark-700 rounded"
               >
-                <DownloadIcon className="w-4 h-4" />
+                <ArrowDownTrayIcon className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               onClick={() => downloadFile(url, name)}
               className="p-1 hover:bg-gray-200 dark:hover:bg-dark-600 rounded"
             >
-              <DownloadIcon className="w-4 h-4" />
+              <ArrowDownTrayIcon className="w-4 h-4" />
             </button>
           </div>
         )
@@ -161,7 +161,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                 onClick={() => downloadFile(url, name)}
                 className="p-1 hover:bg-gray-200 dark:hover:bg-dark-600 rounded"
               >
-                <DownloadIcon className="w-4 h-4" />
+                <ArrowDownTrayIcon className="w-4 h-4" />
               </button>
             </div>
           </div>

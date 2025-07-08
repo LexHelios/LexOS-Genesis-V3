@@ -11,7 +11,7 @@ import {
   VideoCameraIcon,
   XMarkIcon,
   EyeIcon,
-  DownloadIcon
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline'
 import { useLexOS } from '../context/LexOSContext'
 import { useWebSocket } from '../hooks/useWebSocket'
