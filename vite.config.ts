@@ -11,7 +11,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: process.env.VITE_LEXOS_API_URL || 'http://localhost:8080',
         changeOrigin: true,
         timeout: 5000,
         proxyTimeout: 5000,
@@ -36,7 +36,7 @@ export default defineConfig({
         }
       },
       '/ws': {
-        target: 'ws://localhost:8081',
+        target: process.env.VITE_LEXOS_WS_URL || 'ws://localhost:8081',
         ws: true,
         timeout: 5000,
         configure: (proxy, options) => {

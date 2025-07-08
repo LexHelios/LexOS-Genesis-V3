@@ -35,15 +35,18 @@ export function useWebSocket() {
     }
     
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      
       // Determine WebSocket URL based on environment
       let wsUrl: string
-      if (import.meta.env.DEV) {
-        // In development, try localhost first
+      
+      if (import.meta.env.VITE_LEXOS_WS_URL) {
+        // Use environment variable if available (for webcontainer/cloud environments)
+        wsUrl = `${import.meta.env.VITE_LEXOS_WS_URL}/ws`
+      } else if (import.meta.env.DEV) {
+        // In local development, use localhost
         wsUrl = 'ws://localhost:8081/ws'
       } else {
         // In production, use the current host
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         wsUrl = `${protocol}//${window.location.hostname}:8081/ws`
       }
       
