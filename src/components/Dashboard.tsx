@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { useLexOS } from '../context/LexOSContext'
+import { useWebSocket } from '../hooks/useWebSocket'
 
 export default function Dashboard() {
   const { state } = useLexOS()
@@ -80,7 +81,6 @@ export default function Dashboard() {
     { name: 'Vision', value: 20, color: '#f59e0b' },
     { name: 'Reasoning', value: 10, color: '#ef4444' },
   ]
-import { useWebSocket } from '../hooks/useWebSocket'
 
 
   const { useMockData } = useWebSocket()
