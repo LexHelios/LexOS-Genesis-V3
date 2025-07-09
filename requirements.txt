@@ -1,45 +1,63 @@
-# Core dependencies
-aiohttp>=3.9.0
-aiofiles>=23.2.1
-websockets>=12.0
-pyyaml>=6.0.1
+# --- Core ---
+fastapi
+uvicorn[standard]
+gunicorn
+python-dotenv
+requests
+pydantic>=2.0
+aiohttp
+python-jose[cryptography]
+httpx
 
-# AI/ML dependencies
-numpy>=1.24.0
-pillow>=10.0.0
-sentence-transformers>=2.2.2
-chromadb>=0.4.0
-torch>=2.0.0
-torchvision>=0.15.0
+# --- LLM / AI Inference ---
+openai  # For OpenAI-compatible vLLM/Ollama
+ollama  # If available, or use HTTP wrapper
+vllm
+transformers
+sentence-transformers
 
-# System monitoring
-psutil>=5.9.0
-gputil>=1.4.0
+# --- Vector DB / Persistence ---
+chromadb
+psycopg2-binary
+sqlalchemy
 
-# Web interface
-jinja2>=3.1.2
+# --- Caching / Message Queue ---
+redis
+aioredis
 
-# Utilities
-python-dateutil>=2.8.2
-rich>=13.0.0
-click>=8.1.0
-python-dotenv>=1.0.0
+# --- Agent Frameworks ---
+langchain
+crewai
+autogen
+pyee  # event bus
 
-# Optional but recommended
-pandas>=2.0.0
-matplotlib>=3.7.0
-plotly>=5.17.0
-streamlit>=1.28.0
+# --- Monitoring / Observability ---
+prometheus-client
+opentelemetry-api
+opentelemetry-sdk
 
-# Production server (aiohttp)
-uvicorn[standard]>=0.27.0
+# --- Security / Auth ---
+bcrypt
+passlib
 
-# Logging
-loguru>=0.7.2
+# --- Email (optional) ---
+python-multipart
 
-# Testing
-pytest>=8.0.0
-pytest-asyncio>=0.23.0
+# --- Image / Audio / Multimodal ---
+Pillow
+opencv-python
+whisper
+torch
+torchaudio
 
-# Dev tools
-pre-commit>=3.3.0
+# --- Utilities ---
+python-slugify
+pyyaml
+tqdm
+colorlog
+
+# --- Healthchecks / Lint ---
+curlify
+
+# --- For legacy codebases (optional) ---
+dataclasses; python_version < '3.7'
