@@ -1,0 +1,41 @@
+services:
+  python-app:
+    container_name: python-app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    init: true
+    # env_file: ./.env  # Uncomment if .env file exists
+    ports:
+      - "8080:8080"   # API HTTP
+      - "8081:8081"   # WebSocket
+    networks:
+      - lexos-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 5
+
+  ts-src:
+    container_name: ts-src
+    build:
+      context: ./src
+      dockerfile: ../srcDockerfile
+    restart: unless-stopped
+    init: true
+    # env_file: ./src/.env  # Uncomment if .env file exists
+    ports:
+      - "4173:4173"   # Vite preview server
+      - "3000:3000"   # (if needed for dev)
+    networks:
+      - lexos-net
+    depends_on:
+      - python-app
+    # The frontend may need to talk to the backend
+
+networks:
+  lexos-net:
+    driver: bridge

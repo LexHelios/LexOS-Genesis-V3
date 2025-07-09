@@ -1,0 +1,70 @@
+# syntax=docker/dockerfile:1
+
+ARG PYTHON_VERSION=3.11
+FROM python:${PYTHON_VERSION}-slim AS base
+
+# System-level dependencies for Python packages (Pillow, torch, etc.)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        git \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        ffmpeg \
+        libsndfile1 \
+        curl \
+        && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Create a non-root user
+RUN groupadd -r lexos && useradd --no-log-init -r -g lexos lexos
+
+# --- Builder stage ---
+FROM base AS builder
+
+# Copy requirements first for better cache utilization
+COPY --link requirements.txt ./
+
+# Create venv and install dependencies with pip cache
+RUN python -m venv .venv && \
+    .venv/bin/pip install --upgrade pip && \
+    --mount=type=cache,target=/root/.cache/pip \
+    .venv/bin/pip install -r requirements.txt
+
+# Copy application code (excluding .git, .env, lock files, etc.)
+COPY --link . .
+
+# --- Final stage ---
+FROM base AS final
+
+WORKDIR /app
+
+# Copy venv from builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application code from builder (excluding .git, .env, lock files, etc.)
+COPY --from=builder /app /app
+
+# Set environment variables for Python
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Create directories for runtime data (volumes will be mounted here)
+RUN mkdir -p /app/lexos_memory /app/logs /app/static /app/temp /app/config /app/uploads /app/backups && \
+    chown -R lexos:lexos /app/lexos_memory /app/logs /app/static /app/temp /app/config /app/uploads /app/backups
+
+USER lexos
+
+# Expose API and WebSocket ports (default: 8080, 8081)
+EXPOSE 8080 8081
+
+# Healthcheck (can be overridden by docker-compose)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=5 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Default command (can be overridden by docker-compose)
+CMD ["python", "main.py"]
