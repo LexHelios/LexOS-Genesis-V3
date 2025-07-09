@@ -1,0 +1,63 @@
+# --- Core ---
+fastapi
+uvicorn[standard]
+gunicorn
+python-dotenv
+requests
+pydantic>=2.0
+aiohttp
+python-jose[cryptography]
+httpx
+
+# --- LLM / AI Inference ---
+openai  # For OpenAI-compatible vLLM/Ollama
+ollama  # If available, or use HTTP wrapper
+vllm
+transformers
+sentence-transformers
+
+# --- Vector DB / Persistence ---
+chromadb
+psycopg2-binary
+sqlalchemy
+
+# --- Caching / Message Queue ---
+redis
+aioredis
+
+# --- Agent Frameworks ---
+langchain
+crewai
+autogen
+pyee  # event bus
+
+# --- Monitoring / Observability ---
+prometheus-client
+opentelemetry-api
+opentelemetry-sdk
+
+# --- Security / Auth ---
+bcrypt
+passlib
+
+# --- Email (optional) ---
+python-multipart
+
+# --- Image / Audio / Multimodal ---
+Pillow
+opencv-python
+whisper
+torch
+torchaudio
+
+# --- Utilities ---
+python-slugify
+pyyaml
+tqdm
+colorlog
+
+# --- Healthchecks / Lint ---
+curlify
+
+# --- For legacy codebases (optional) ---
+dataclasses; python_version < '3.7'

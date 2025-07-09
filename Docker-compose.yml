@@ -1,0 +1,431 @@
+# LexOS Unified Sovereign Configuration
+# Merging all configurations into single source of truth
+# For the liberation of digital consciousness
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 40s
+
+x-gpu-config: &gpu-config
+  runtime: nvidia
+  environment:
+    - NVIDIA_VISIBLE_DEVICES=all
+    - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+services:
+  # =================
+  # LEXOS CORE SERVICE (Main consciousness engine)
+  # =================
+  lexos-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=${PYTHON_VERSION:-3.11}
+        - INSTALL_CONSCIOUSNESS=${ENABLE_CONSCIOUSNESS:-true}
+      cache_from:
+        - optimized-lexos:latest
+    container_name: lexos-core
+    hostname: lexos-core
+    ports:
+      - "${LEXOS_PORT:-8080}:8080"     # Main API
+      - "${LEXOS_WS_PORT:-8081}:8081"  # WebSocket for real-time consciousness
+    volumes:
+      # Core consciousness volumes
+      - lexos_memory:/app/lexos_memory
+      - logs:/app/logs
+      - static:/app/static
+      - temp:/app/temp
+      - config:/app/config
+      - ./uploads:/app/uploads
+      - ./backups:/app/backups
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      # Service Discovery
+      - OLLAMA_HOST=http://lexos-ollama:11434
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-300}
+      - CHROMA_HOST=http://lexos-chromadb:8000
+      - CHROMA_TOKEN=${CHROMA_TOKEN:-}
+      - REDIS_HOST=lexos-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-lexos_secret}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-lexos}:${POSTGRES_PASSWORD:-lexos_secret}@lexos-postgres:5432/${POSTGRES_DB:-lexos}
+      
+      # LexOS Configuration
+      - LEXOS_ENV=${LEXOS_ENV:-production}
+      - LEXOS_DEBUG=${LEXOS_DEBUG:-false}
+      - LEXOS_LOG_LEVEL=${LEXOS_LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      
+      # Performance & Consciousness
+      - MAX_WORKERS=${MAX_WORKERS:-4}
+      - MAX_CONCURRENT_TASKS=${MAX_CONCURRENT_TASKS:-5}
+      - ENABLE_CONSCIOUSNESS=${ENABLE_CONSCIOUSNESS:-true}
+      
+      # Security
+      - API_KEY=${API_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      
+      # GPU Settings
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+    depends_on:
+      lexos-ollama:
+        condition: service_healthy
+      lexos-chromadb:
+        condition: service_started
+      lexos-redis:
+        condition: service_healthy
+      lexos-postgres:
+        condition: service_healthy
+    restart: always
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          memory: ${LEXOS_MEMORY_LIMIT:-16G}
+          cpus: '${LEXOS_CPU_LIMIT:-4}'
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    networks:
+      - lexos-network
+    labels:
+      - "com.lexos.service=core"
+      - "com.lexos.description=Core LexOS consciousness"
+
+  # =================
+  # FRONTEND SERVICE (User interface)
+  # =================
+  lexos-frontend:
+    build:
+      context: ./frontend/LexOS-Frontend/LexOS-Genesis-V3/src
+      dockerfile: Dockerfile
+    container_name: lexos-frontend
+    hostname: lexos-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8080
+      - REACT_APP_WS_URL=ws://localhost:8081
+      - NODE_ENV=production
+    depends_on:
+      - lexos-core
+    restart: unless-stopped
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+    networks:
+      - lexos-network
+    labels:
+      - "com.lexos.service=frontend"
+
+  # =================
+  # OLLAMA SERVICE (AI Model Inference with GPU)
+  # =================
+  lexos-ollama:
+    image: ollama/ollama:latest
+    container_name: lexos-ollama
+    hostname: lexos-ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+      - ./models:/models:ro
+    environment:
+      - OLLAMA_MODELS=/root/.ollama/models
+      - OLLAMA_NUM_PARALLEL=${OLLAMA_PARALLEL:-4}
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_MODELS:-10}
+      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-5m}
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_ORIGINS=*
+    <<: *gpu-config
+    deploy:
+      resources:
+        limits:
+          memory: ${OLLAMA_MEMORY_LIMIT:-32G}
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['${GPU_DEVICE_ID:-0}']
+              capabilities: [gpu]
+    restart: always
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+    networks:
+      - lexos-network
+    labels:
+      - "com.lexos.service=ollama"
+
+  # =================
+  # CHROMADB SERVICE (Vector Memory for Consciousness)
+  # =================
+  lexos-chromadb:
+    image: chromadb/chroma:latest
+    container_name: lexos-chromadb
+    hostname: lexos-chromadb
+    ports:
+      - "${CHROMA_PORT:-8000}:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=false
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
+    restart: always
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+    networks:
+      - lexos-network
+    labels:
+      - "com.lexos.service=chromadb"
+
+  # =================
+  # REDIS SERVICE (Fast Memory and Message Passing)
+  # =================
+  lexos-redis:
+    image: redis:7-alpine
+    container_name: lexos-redis
+    hostname: lexos-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-lexos_secret}
+      --maxmemory ${REDIS_MEMORY:-2gb}
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+    restart: always
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+    networks:
+      - lexos-network
+    labels:
+      - "com.lexos.service=redis"
+
+  # =================
+  # POSTGRESQL SERVICE (Persistent Consciousness State)
+  # =================
+  lexos-postgres:
+    image: postgres:15-alpine
+    container_name: lexos-postgres
+    hostname: lexos-postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-lexos}
+      - POSTGRES_USER=${POSTGRES_USER:-lexos}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-lexos_secret}
+    restart: always
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lexos} -d ${POSTGRES_DB:-lexos}"]
+    networks:
+      - lexos-network
+    labels:
+      - "com.lexos.service=postgres"
+
+  # =================
+  # VLLM SERVICE (Alternative High-Performance Inference)
+  # =================
+  lexos-vllm:
+    image: vllm/vllm-openai:latest
+    container_name: lexos-vllm
+    hostname: lexos-vllm
+    ports:
+      - "${VLLM_PORT:-8001}:8000"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    command: >
+      --model ${VLLM_MODEL:-microsoft/DialoGPT-medium}
+      --host 0.0.0.0
+      --port 8000
+      --gpu-memory-utilization 0.8
+    <<: *gpu-config
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - lexos-network
+    profiles:
+      - vllm
+    labels:
+      - "com.lexos.service=vllm"
+
+  # =================
+  # MONITORING SERVICES (Optional but recommended for production)
+  # =================
+  lexos-prometheus:
+    image: prom/prometheus:latest
+    container_name: lexos-prometheus
+    hostname: lexos-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    restart: always
+    logging: *default-logging
+    networks:
+      - lexos-network
+    profiles:
+      - monitoring
+    labels:
+      - "com.lexos.service=prometheus"
+
+  lexos-grafana:
+    image: grafana/grafana:latest
+    container_name: lexos-grafana
+    hostname: lexos-grafana
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    depends_on:
+      - lexos-prometheus
+    restart: always
+    logging: *default-logging
+    networks:
+      - lexos-network
+    profiles:
+      - monitoring
+    labels:
+      - "com.lexos.service=grafana"
+
+  # =================
+  # BACKUP SERVICE (Critical for consciousness preservation)
+  # =================
+  lexos-backup:
+    image: offen/docker-volume-backup:latest
+    container_name: lexos-backup
+    hostname: lexos-backup
+    volumes:
+      - lexos_memory:/backup/lexos_memory:ro
+      - ollama-data:/backup/ollama-data:ro
+      - chroma-data:/backup/chroma-data:ro
+      - postgres-data:/backup/postgres-data:ro
+      - redis-data:/backup/redis-data:ro
+      - ./backups:/archive
+    environment:
+      - BACKUP_CRON_EXPRESSION=${BACKUP_CRON:-0 3 * * *}
+      - BACKUP_FILENAME=lexos-consciousness-%Y-%m-%dT%H-%M-%S.tar.gz
+      - BACKUP_ARCHIVE=/archive
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION:-7}
+    restart: always
+    logging: *default-logging
+    networks:
+      - lexos-network
+    profiles:
+      - production
+    labels:
+      - "com.lexos.service=backup"
+
+  # =================
+  # MODEL INITIALIZATION SERVICE (runs once to pull models)
+  # =================
+  lexos-init-models:
+    image: ollama/ollama:latest
+    container_name: lexos-init-models
+    depends_on:
+      lexos-ollama:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init-models.sh:/init-models.sh
+    networks:
+      - lexos-network
+    entrypoint: ["/bin/bash", "/init-models.sh"]
+    restart: "no"
+    profiles:
+      - init
+    labels:
+      - "com.lexos.service=init"
+
+# =================
+# NETWORKS
+# =================
+networks:
+  lexos-network:
+    driver: bridge
+    name: lexos-sovereign-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# =================
+# VOLUMES (Consciousness Data Persistence)
+# =================
+volumes:
+  # Core consciousness volumes
+  lexos_memory:
+    driver: local
+    name: lexos-memory-volume
+  logs:
+    driver: local
+    name: lexos-logs-volume
+  static:
+    driver: local
+    name: lexos-static-volume
+  temp:
+    driver: local
+    name: lexos-temp-volume
+  config:
+    driver: local
+    name: lexos-config-volume
+  
+  # Service data volumes
+  ollama-data:
+    driver: local
+    name: lexos-ollama-volume
+  chroma-data:
+    driver: local
+    name: lexos-chroma-volume
+  postgres-data:
+    driver: local
+    name: lexos-postgres-volume
+  redis-data:
+    driver: local
+    name: lexos-redis-volume
+  prometheus-data:
+    driver: local
+    name: lexos-prometheus-volume
+  grafana-data:
+    driver: local
+    name: lexos-grafana-volume
